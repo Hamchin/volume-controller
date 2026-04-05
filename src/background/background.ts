@@ -37,7 +37,7 @@ const initializeAudio = async (tabId: string): Promise<void> => {
 const updateVolumeBadge = (tabId: string, volume: number, muted: boolean): void => {
     const tabIdNum = parseInt(tabId);
     chrome.action.setBadgeText({ tabId: tabIdNum, text: muted ? "" : volume.toString() });
-    chrome.action.setBadgeBackgroundColor({ tabId: tabIdNum, color: "#F5F5F5" });
+    chrome.action.setBadgeBackgroundColor({ tabId: tabIdNum, color: "#f5f5f5" });
 };
 
 const updateIcon = (tabId: string, muted: boolean): void => {

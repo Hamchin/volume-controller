@@ -2,22 +2,91 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volume Controller</title>
   <style>
-    body { width: 200px; padding: 10px; font-family: sans-serif; }
-    input { width: 100%; }
-    .controls { display: flex; gap: 6px; margin-top: 10px; }
-    .controls button { flex: 1; padding: 6px 0; }
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 12px;
+      background: linear-gradient(135deg, #f3f7ff 0%, #e8fff9 100%);
+      font-family: "Segoe UI", "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+    }
+    .panel {
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(31, 41, 55, 0.18);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(4px);
+    }
+    .title {
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #465164;
+      margin: 0;
+    }
+    .value {
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 700;
+      color: #111827;
+      margin-top: 6px;
+    }
+    #volumeSlider {
+      height: 1.2rem;
+      cursor: pointer;
+    }
+    .btn-group-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .control-btn {
+      height: 40px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-width: 2px;
+    }
+    #muteButton {
+      background: #0d6efd;
+      color: #ffffff;
+      border-color: #0d6efd;
+    }
+    #muteButton[aria-pressed="true"] {
+      background: #dc3545;
+      border-color: #dc3545;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
-  <h3>Volume: <span id="volumeDisplay">0</span>%</h3>
-  <input type="range" id="volumeSlider" min="0" max="200" value="0">
-  <div class="controls">
-    <button id="volumeDown10Button" type="button" title="Volume Down 10% (←)">&lt;&lt;</button>
-    <button id="volumeDown1Button" type="button" title="Volume Down 1% (Shift + ←)">&lt;</button>
-    <button id="muteButton" type="button" aria-pressed="false" title="Mute / Unmute (M)">🔊</button>
-    <button id="volumeUp1Button" type="button" title="Volume Up 1% (Shift + →)">&gt;</button>
-    <button id="volumeUp10Button" type="button" title="Volume Up 10% (→)">&gt;&gt;</button>
+  <div class="panel card">
+    <div class="card-body p-3">
+      <p class="title">Volume Controller</p>
+      <p class="value"><span id="volumeDisplay">0</span>%</p>
+      <input class="form-range" type="range" id="volumeSlider" min="0" max="200" value="0" aria-label="Volume slider">
+      <div class="btn-group-grid mt-3" role="group" aria-label="Volume controls">
+        <button id="volumeDown10Button" class="btn btn-outline-secondary control-btn" type="button" title="Volume Down 10% (←)">
+          <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+        </button>
+        <button id="volumeDown1Button" class="btn btn-outline-secondary control-btn" type="button" title="Volume Down 1% (Shift + ←)">
+          <i class="fa-solid fa-angle-left" aria-hidden="true"></i>
+        </button>
+        <button id="muteButton" class="btn control-btn" type="button" aria-pressed="false" title="Mute / Unmute (M)">
+          <i id="muteIcon" class="fa-solid fa-volume" aria-hidden="true"></i>
+        </button>
+        <button id="volumeUp1Button" class="btn btn-outline-secondary control-btn" type="button" title="Volume Up 1% (Shift + →)">
+          <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
+        </button>
+        <button id="volumeUp10Button" class="btn btn-outline-secondary control-btn" type="button" title="Volume Up 10% (→)">
+          <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
   </div>
   <script type="module" src="popup.ts"></script>
 </body>

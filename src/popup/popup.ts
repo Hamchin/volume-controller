@@ -1,3 +1,6 @@
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 import type { Message } from "../shared/types";
 import { getContexts, setContexts } from "../shared/storage";
 
@@ -11,6 +14,7 @@ const volumeUp10Button: HTMLButtonElement = document.getElementById("volumeUp10B
 const volumeDown1Button: HTMLButtonElement = document.getElementById("volumeDown1Button") as HTMLButtonElement;
 const volumeDown10Button: HTMLButtonElement = document.getElementById("volumeDown10Button") as HTMLButtonElement;
 const muteButton: HTMLButtonElement = document.getElementById("muteButton") as HTMLButtonElement;
+const muteIcon: HTMLElement = document.getElementById("muteIcon") as HTMLElement;
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 const clamp = (volume: number): number => Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, volume));
@@ -21,8 +25,8 @@ const getCurrentTabId = async (): Promise<string> => {
 };
 
 const updateMuteButton = (muted: boolean): void => {
-    muteButton.textContent = muted ? "🔇" : "🔊";
     muteButton.setAttribute("aria-pressed", muted.toString());
+    muteIcon.className = muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume";
 };
 
 const updateVolume = async (tabId: string, volume: number | null, muted: boolean | null): Promise<void> => {

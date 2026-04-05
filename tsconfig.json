@@ -12,7 +12,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "bundler",
-    "types": ["chrome"]
+    "types": ["chrome", "vite/client"]
   },
   "include": [
     "src/**/*"
