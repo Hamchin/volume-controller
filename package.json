@@ -6,7 +6,9 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.4.0",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@types/chrome": "^0.1.39",
+    "bootstrap": "^5.3.8",
     "typescript": "^6.0.2",
     "vite": "^8.0.3"
   }
