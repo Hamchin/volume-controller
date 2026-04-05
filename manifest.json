@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Volume Controller",
   "version": "1.0.0",
+  "homepage_url": "https://github.com/Hamchin/volume-controller",
   "icons": {
     "16": "icons/icon_16.png",
     "48": "icons/icon_48.png",
