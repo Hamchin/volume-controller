@@ -6,9 +6,14 @@ const MAX_VOLUME = 200;
 
 const volumeDisplay: HTMLElement = document.getElementById("volumeDisplay")!;
 const volumeSlider: HTMLInputElement = document.getElementById("volumeSlider") as HTMLInputElement;
+const volumeUp1Button: HTMLButtonElement = document.getElementById("volumeUp1Button") as HTMLButtonElement;
+const volumeUp10Button: HTMLButtonElement = document.getElementById("volumeUp10Button") as HTMLButtonElement;
+const volumeDown1Button: HTMLButtonElement = document.getElementById("volumeDown1Button") as HTMLButtonElement;
+const volumeDown10Button: HTMLButtonElement = document.getElementById("volumeDown10Button") as HTMLButtonElement;
 const muteButton: HTMLButtonElement = document.getElementById("muteButton") as HTMLButtonElement;
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+const clamp = (volume: number): number => Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, volume));
 
 const getCurrentTabId = async (): Promise<string> => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -16,7 +21,7 @@ const getCurrentTabId = async (): Promise<string> => {
 };
 
 const updateMuteButton = (muted: boolean): void => {
-    muteButton.textContent = muted ? "Unmute" : "Mute";
+    muteButton.textContent = muted ? "🔇" : "🔊";
     muteButton.setAttribute("aria-pressed", muted.toString());
 };
 
@@ -32,6 +37,18 @@ const updateVolume = async (tabId: string, volume: number | null, muted: boolean
 
     await setContexts(tabId, { ...contexts, volume: nextVolume, muted: nextMuted });
     await chrome.runtime.sendMessage({ type: "UPDATE_VOLUME", tabId } satisfies Message);
+};
+
+const changeVolume = async (delta: number): Promise<void> => {
+    const step = Math.abs(delta);
+    const round = delta > 0 ? Math.floor : Math.ceil;
+    const currentVolume = parseInt(volumeSlider.value);
+    const nextVolume = clamp(round(currentVolume / step) * step + delta);
+
+    if (nextVolume === currentVolume) return;
+
+    const tabId = await getCurrentTabId();
+    await updateVolume(tabId, nextVolume, null);
 };
 
 const toggleMuted = async (): Promise<void> => {
@@ -54,6 +71,22 @@ volumeSlider.addEventListener("input", async (): Promise<void> => {
     await updateVolume(tabId, volume, null);
 });
 
+volumeUp1Button.addEventListener("click", async (): Promise<void> => {
+    await changeVolume(1);
+});
+
+volumeUp10Button.addEventListener("click", async (): Promise<void> => {
+    await changeVolume(10);
+});
+
+volumeDown1Button.addEventListener("click", async (): Promise<void> => {
+    await changeVolume(-1);
+});
+
+volumeDown10Button.addEventListener("click", async (): Promise<void> => {
+    await changeVolume(-10);
+});
+
 muteButton.addEventListener("click", async (): Promise<void> => {
     await toggleMuted();
 });
@@ -68,15 +101,7 @@ window.addEventListener("keydown", async (event: KeyboardEvent): Promise<void> =
 
     const step = event.shiftKey ? 1 : 10;
     const delta = isRight ? step : -step;
-    const round = isRight ? Math.floor : Math.ceil;
-    const clamp = (volume: number): number => Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, volume));
-    const currentVolume = parseInt(volumeSlider.value);
-    const nextVolume = clamp(round(currentVolume / step) * step + delta);
-
-    if (nextVolume === currentVolume) return;
-
-    const tabId = await getCurrentTabId();
-    await updateVolume(tabId, nextVolume, null);
+    await changeVolume(delta);
 });
 
 window.addEventListener("keydown", async (event: KeyboardEvent): Promise<void> => {

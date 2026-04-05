@@ -5,13 +5,20 @@
   <style>
     body { width: 200px; padding: 10px; font-family: sans-serif; }
     input { width: 100%; }
-    button { width: 100%; margin-top: 10px; }
+    .controls { display: flex; gap: 6px; margin-top: 10px; }
+    .controls button { flex: 1; padding: 6px 0; }
   </style>
 </head>
 <body>
   <h3>Volume: <span id="volumeDisplay">0</span>%</h3>
   <input type="range" id="volumeSlider" min="0" max="200" value="0">
-  <button id="muteButton" type="button" aria-pressed="false">Mute</button>
+  <div class="controls">
+    <button id="volumeDown10Button" type="button" title="Volume Down 10% (←)">&lt;&lt;</button>
+    <button id="volumeDown1Button" type="button" title="Volume Down 1% (Shift + ←)">&lt;</button>
+    <button id="muteButton" type="button" aria-pressed="false" title="Mute / Unmute (M)">🔊</button>
+    <button id="volumeUp1Button" type="button" title="Volume Up 1% (Shift + →)">&gt;</button>
+    <button id="volumeUp10Button" type="button" title="Volume Up 10% (→)">&gt;&gt;</button>
+  </div>
   <script type="module" src="popup.ts"></script>
 </body>
 </html>
