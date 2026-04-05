@@ -6,6 +6,8 @@ const MAX_VOLUME = 200;
 const slider: HTMLInputElement = document.getElementById("volumeSlider") as HTMLInputElement;
 const display: HTMLElement = document.getElementById("volumeDisplay")!;
 
+const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
 const getCurrentTabId = async (): Promise<string> => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     return tab.id!.toString();
@@ -35,6 +37,7 @@ const updateVolume = async (tabId: string, volume: number | null, muted: boolean
 const restoreVolume = async (): Promise<void> => {
     const tabId = await getCurrentTabId();
     await updateVolume(tabId, null, null);
+    await sleep(100);
     await chrome.tabs.update(parseInt(tabId), { muted: false });
 };
 
