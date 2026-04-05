@@ -1,4 +1,5 @@
-export {};
+import type { Message } from "../shared/types";
+import { getContexts, setContexts } from "../shared/storage";
 
 const MIN_VOLUME = 0;
 const MAX_VOLUME = 200;
@@ -14,11 +15,6 @@ const getCurrentTabId = async (): Promise<string> => {
     return tab.id!.toString();
 };
 
-const getContexts = async (tabId: string): Promise<{ [key: string]: any }> => {
-    const contextsByTabId = await chrome.storage.local.get(tabId) as { [key: string]: { [key: string]: any } };
-    return contextsByTabId[tabId] ?? { streamId: null, volume: 0, muted: false };
-};
-
 const updateMuteButton = (muted: boolean): void => {
     muteButton.textContent = muted ? "Unmute" : "Mute";
     muteButton.setAttribute("aria-pressed", muted.toString());
@@ -27,18 +23,15 @@ const updateMuteButton = (muted: boolean): void => {
 const updateVolume = async (tabId: string, volume: number | null, muted: boolean | null): Promise<void> => {
     const contexts = await getContexts(tabId);
 
-    volume = (volume ?? contexts.volume) as number;
-    contexts.volume = volume;
+    const nextVolume = volume ?? contexts.volume;
+    const nextMuted = muted ?? contexts.muted;
 
-    muted = (muted ?? contexts.muted) as boolean;
-    contexts.muted = muted;
+    volumeDisplay.textContent = nextVolume.toString();
+    volumeSlider.value = nextVolume.toString();
+    updateMuteButton(nextMuted);
 
-    volumeDisplay.textContent = volume.toString();
-    volumeSlider.value = volume.toString();
-    updateMuteButton(muted);
-
-    await chrome.storage.local.set({ [tabId]: contexts });
-    await chrome.runtime.sendMessage({ type: "UPDATE_VOLUME", tabId });
+    await setContexts(tabId, { ...contexts, volume: nextVolume, muted: nextMuted });
+    await chrome.runtime.sendMessage({ type: "UPDATE_VOLUME", tabId } satisfies Message);
 };
 
 const toggleMuted = async (): Promise<void> => {
@@ -69,33 +62,25 @@ window.addEventListener("keydown", async (event: KeyboardEvent): Promise<void> =
     const isRight = event.key === "ArrowRight";
     const isLeft = event.key === "ArrowLeft";
 
-    if (!isRight && !isLeft) {
-        return;
-    }
+    if (!isRight && !isLeft) return;
 
     event.preventDefault();
-
-    const currentVolume = parseInt(volumeSlider.value);
 
     const step = event.shiftKey ? 1 : 10;
     const delta = isRight ? step : -step;
     const round = isRight ? Math.floor : Math.ceil;
     const clamp = (volume: number): number => Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, volume));
+    const currentVolume = parseInt(volumeSlider.value);
     const nextVolume = clamp(round(currentVolume / step) * step + delta);
 
-    if (nextVolume === currentVolume) {
-        return;
-    }
+    if (nextVolume === currentVolume) return;
 
     const tabId = await getCurrentTabId();
     await updateVolume(tabId, nextVolume, null);
 });
 
 window.addEventListener("keydown", async (event: KeyboardEvent): Promise<void> => {
-    if (event.key !== "m" && event.key !== "M") {
-        return;
-    }
-
+    if (event.key !== "m" && event.key !== "M") return;
     event.preventDefault();
     await toggleMuted();
 });
