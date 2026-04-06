@@ -1,5 +1,7 @@
 # Volume Controller
 
+音量を調節するための Chrome 拡張機能
+
 ## 使い方
 
 ### ポップアップ
