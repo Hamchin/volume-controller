@@ -49,14 +49,16 @@ const updateVolume = async (tabId: string, volume: number | null, muted: boolean
 };
 
 const changeVolume = async (delta: number): Promise<void> => {
+    const tabId = await getCurrentTabId();
+    const contexts = await getContexts(tabId);
+
     const step = Math.abs(delta);
     const round = delta > 0 ? Math.floor : Math.ceil;
-    const currentVolume = parseInt(volumeSlider.value);
+    const currentVolume = contexts.volume;
     const nextVolume = clamp(round(currentVolume / step) * step + delta);
 
     if (nextVolume === currentVolume) return;
 
-    const tabId = await getCurrentTabId();
     await updateVolume(tabId, nextVolume, null);
 };
 
