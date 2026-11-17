@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volume Controller</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 12px;
+      background: #eef2ff;
+      font-family: "Segoe UI", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    }
+    .panel {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
+      padding: 18px;
+    }
+    .title {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #6366f1;
+      margin: 0;
+      font-weight: 700;
+    }
+    .value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .value {
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .unit {
+      font-size: 16px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    #volumeSlider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      margin: 18px 0 4px;
+      padding: 0;
+      background: #e2e8f0;
+      outline: none;
+      cursor: pointer;
+    }
+    #volumeSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #6366f1;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+      cursor: pointer;
+    }
+    #volumeSlider::-moz-range-track {
+      height: 6px;
+      border-radius: 3px;
+      background: #e2e8f0;
+    }
+    #volumeSlider::-moz-range-progress {
+      height: 6px;
+      border-radius: 3px;
+      background: #6366f1;
+    }
+    #volumeSlider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #6366f1;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+      cursor: pointer;
+    }
+    .btn-group-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .control-btn {
+      height: 42px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .control-btn:hover {
+      border-color: #c7d2fe;
+      background: #eef2ff;
+    }
+    .control-btn:active {
+      transform: translateY(1px);
+    }
+    #muteButton {
+      background: #6366f1;
+      border-color: #6366f1;
+      color: #ffffff;
+    }
+    #muteButton:hover {
+      background: #4f46e5;
+      border-color: #4f46e5;
+    }
+    #muteButton[aria-pressed="true"] {
+      background: #dc3545;
+      border-color: #dc3545;
+      color: #ffffff;
+    }
+    #muteButton[aria-pressed="true"]:hover {
+      background: #bb2d3b;
+      border-color: #bb2d3b;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/popup.html-DelPuUOA.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-BnkOoLKg.js">
+  <link rel="modulepreload" crossorigin href="/assets/storage-Bx9JjGpe.js">
+  <link rel="stylesheet" crossorigin href="/assets/popup-oWjJCnUD.css">
+</head>
+<body>
+  <div class="panel">
+    <p class="title">Volume Controller</p>
+    <div class="value-row"><span class="value" id="volumeDisplay">0</span><span class="unit">%</span></div>
+    <input type="range" id="volumeSlider" min="0" max="200" value="0">
+    <div class="btn-group-grid" role="group">
+      <button id="volumeDown10Button" class="control-btn" type="button" title="Volume Down 10% (←)">
+        <i class="fa-solid fa-angles-left"></i>
+      </button>
+      <button id="volumeDown1Button" class="control-btn" type="button" title="Volume Down 1% (Shift + ←)">
+        <i class="fa-solid fa-angle-left"></i>
+      </button>
+      <button id="muteButton" class="control-btn" type="button" aria-pressed="false" title="Mute / Unmute (M)">
+        <i id="muteIcon" class="fa-solid fa-volume"></i>
+      </button>
+      <button id="volumeUp1Button" class="control-btn" type="button" title="Volume Up 1% (Shift + →)">
+        <i class="fa-solid fa-angle-right"></i>
+      </button>
+      <button id="volumeUp10Button" class="control-btn" type="button" title="Volume Up 10% (→)">
+        <i class="fa-solid fa-angles-right"></i>
+      </button>
+    </div>
+  </div>
+</body>
+</html>
