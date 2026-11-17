@@ -1,4 +1,3 @@
-import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import type { Message } from "../shared/types";
@@ -29,6 +28,11 @@ const updateMuteButton = (muted: boolean): void => {
     muteIcon.className = muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume";
 };
 
+const updateSliderFill = (volume: number): void => {
+    const percent = (volume / MAX_VOLUME) * 100;
+    volumeSlider.style.background = `linear-gradient(90deg, #6366f1 ${percent}%, #e2e8f0 ${percent}%)`;
+};
+
 const updateVolume = async (tabId: string, volume: number | null, muted: boolean | null): Promise<void> => {
     const contexts = await getContexts(tabId);
 
@@ -37,6 +41,7 @@ const updateVolume = async (tabId: string, volume: number | null, muted: boolean
 
     volumeDisplay.textContent = nextVolume.toString();
     volumeSlider.value = nextVolume.toString();
+    updateSliderFill(nextVolume);
     updateMuteButton(nextMuted);
 
     await setContexts(tabId, { ...contexts, volume: nextVolume, muted: nextMuted });
