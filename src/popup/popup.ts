@@ -77,8 +77,10 @@ const restoreVolume = async (): Promise<void> => {
 };
 
 volumeSlider.addEventListener("input", async (): Promise<void> => {
+    const rawVolume = parseInt(volumeSlider.value);
+    const volume = clamp(Math.round(rawVolume / 10) * 10);
+    volumeSlider.value = volume.toString();
     const tabId = await getCurrentTabId();
-    const volume = parseInt(volumeSlider.value);
     await updateVolume(tabId, volume, null);
 });
 
