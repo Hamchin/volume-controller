@@ -91,7 +91,8 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# NOTE: dist is tracked in git on purpose (see commit history) so that
+# `git pull` alone delivers a runnable extension build.
 
 # Gatsby files
 .cache/
