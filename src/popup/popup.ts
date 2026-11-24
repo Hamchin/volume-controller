@@ -1,6 +1,6 @@
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-import type { Message } from "../shared/types";
+import type { Message, MessageResponse } from "../shared/types";
 import { getContexts, setContexts } from "../shared/storage";
 
 const MIN_VOLUME = 0;
@@ -15,7 +15,6 @@ const volumeDown10Button: HTMLButtonElement = document.getElementById("volumeDow
 const muteButton: HTMLButtonElement = document.getElementById("muteButton") as HTMLButtonElement;
 const muteIcon: HTMLElement = document.getElementById("muteIcon") as HTMLElement;
 
-const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 const clamp = (volume: number): number => Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, volume));
 
 const getCurrentTabId = async (): Promise<string> => {
@@ -33,7 +32,7 @@ const updateSliderFill = (volume: number): void => {
     volumeSlider.style.background = `linear-gradient(90deg, #6366f1 ${percent}%, #e2e8f0 ${percent}%)`;
 };
 
-const updateVolume = async (tabId: string, volume: number | null, muted: boolean | null): Promise<void> => {
+const updateVolume = async (tabId: string, volume: number | null, muted: boolean | null): Promise<boolean> => {
     const contexts = await getContexts(tabId);
 
     const nextVolume = volume ?? contexts.volume;
@@ -45,7 +44,8 @@ const updateVolume = async (tabId: string, volume: number | null, muted: boolean
     updateMuteButton(nextMuted);
 
     await setContexts(tabId, { ...contexts, volume: nextVolume, muted: nextMuted });
-    await chrome.runtime.sendMessage({ type: "UPDATE_VOLUME", tabId } satisfies Message);
+    const response = (await chrome.runtime.sendMessage({ type: "UPDATE_VOLUME", tabId } satisfies Message)) as MessageResponse | undefined;
+    return response?.ok ?? false;
 };
 
 const changeVolume = async (delta: number): Promise<void> => {
@@ -71,9 +71,8 @@ const toggleMuted = async (): Promise<void> => {
 
 const restoreVolume = async (): Promise<void> => {
     const tabId = await getCurrentTabId();
-    await updateVolume(tabId, null, null);
-    await sleep(100);
-    await chrome.tabs.update(parseInt(tabId), { muted: false });
+    const applied = await updateVolume(tabId, null, null);
+    if (applied) await chrome.tabs.update(parseInt(tabId), { muted: false });
 };
 
 volumeSlider.addEventListener("input", async (): Promise<void> => {

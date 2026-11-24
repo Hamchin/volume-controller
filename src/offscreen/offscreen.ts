@@ -1,4 +1,4 @@
-import type { Message } from "../shared/types";
+import type { Message, MessageResponse } from "../shared/types";
 
 interface AudioContexts {
     audioContext: AudioContext;
@@ -7,6 +7,7 @@ interface AudioContexts {
 }
 
 const contextsByTabId = new Map<string, AudioContexts>();
+const initPromisesByTabId = new Map<string, Promise<void>>();
 
 const deleteContexts = async (tabId: string): Promise<void> => {
     const contexts = contextsByTabId.get(tabId);
@@ -18,7 +19,6 @@ const deleteContexts = async (tabId: string): Promise<void> => {
 };
 
 const initializeAudio = async (tabId: string, streamId: string): Promise<void> => {
-    // 再初期化で古いコンテキストを上書きして漏らさないよう、先に破棄する
     await deleteContexts(tabId);
 
     const constraints = {
@@ -37,14 +37,41 @@ const initializeAudio = async (tabId: string, streamId: string): Promise<void> =
     contextsByTabId.set(tabId, { audioContext, gainNode, stream });
 };
 
-const setVolume = (tabId: string, volume: number, muted: boolean): void => {
+const setVolume = (tabId: string, volume: number, muted: boolean): boolean => {
     const contexts = contextsByTabId.get(tabId);
-    if (!contexts) return;
+    if (!contexts) return false;
     contexts.gainNode.gain.value = muted ? 0 : volume / 100;
+    return true;
 };
 
-chrome.runtime.onMessage.addListener(async (message: Message): Promise<void> => {
-    if (message.type === "INIT_AUDIO") await initializeAudio(message.tabId, message.streamId);
-    if (message.type === "SET_VOLUME") setVolume(message.tabId, message.volume, message.muted);
-    if (message.type === "DELETE_CONTEXTS") await deleteContexts(message.tabId);
+chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse: (response: MessageResponse) => void): boolean | undefined => {
+    if (message.type === "INIT_AUDIO") {
+        const init = initializeAudio(message.tabId, message.streamId);
+        initPromisesByTabId.set(message.tabId, init);
+        init.then(
+            () => sendResponse({ ok: true }),
+            () => sendResponse({ ok: false })
+        );
+        return true;
+    }
+
+    if (message.type === "SET_VOLUME") {
+        (async (): Promise<void> => {
+            const init = initPromisesByTabId.get(message.tabId);
+            if (init) {
+                try {
+                    await init;
+                } catch {}
+            }
+            sendResponse({ ok: setVolume(message.tabId, message.volume, message.muted) });
+        })();
+        return true;
+    }
+
+    if (message.type === "DELETE_CONTEXTS") {
+        initPromisesByTabId.delete(message.tabId);
+        void deleteContexts(message.tabId);
+    }
+
+    return undefined;
 });

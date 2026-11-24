@@ -32,3 +32,7 @@ export type Message =
     | InitAudioMessage
     | SetVolumeMessage
     | DeleteContextsMessage;
+
+export interface MessageResponse {
+    ok: boolean;
+}

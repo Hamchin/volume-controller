@@ -1,4 +1,4 @@
-import type { Message } from "../shared/types";
+import type { Message, MessageResponse } from "../shared/types";
 import { getContexts, setContexts } from "../shared/storage";
 
 const DEFAULT_ICONS = {
@@ -16,22 +16,30 @@ const MUTED_ICONS = {
 const createOffscreen = async (): Promise<void> => {
     if (await chrome.offscreen.hasDocument()) return;
 
-    chrome.offscreen.createDocument({
+    await chrome.offscreen.createDocument({
         url: "src/offscreen/offscreen.html",
         reasons: ["USER_MEDIA"],
         justification: "To control tab audio using Web Audio API",
     });
 };
 
-const initializeAudio = async (tabId: string): Promise<void> => {
+const sendToOffscreen = async (message: Message): Promise<MessageResponse | undefined> => {
+    try {
+        return (await chrome.runtime.sendMessage(message)) as MessageResponse | undefined;
+    } catch {
+        return undefined;
+    }
+};
+
+const initializeAudio = async (tabId: string, force = false): Promise<void> => {
     const contexts = await getContexts(tabId);
 
-    if (contexts.streamId) return;
+    if (contexts.streamId && !force) return;
 
     const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: parseInt(tabId) });
     await setContexts(tabId, { ...contexts, streamId });
 
-    chrome.runtime.sendMessage({ type: "INIT_AUDIO", tabId, streamId } satisfies Message);
+    await sendToOffscreen({ type: "INIT_AUDIO", tabId, streamId } satisfies Message);
 };
 
 const updateVolumeBadge = (tabId: string, volume: number, muted: boolean): void => {
@@ -44,14 +52,20 @@ const updateIcon = (tabId: string, muted: boolean): void => {
     chrome.action.setIcon({ tabId: parseInt(tabId), path: muted ? MUTED_ICONS : DEFAULT_ICONS });
 };
 
-const updateVolume = async (tabId: string): Promise<void> => {
+const updateVolume = async (tabId: string): Promise<boolean> => {
+    await createOffscreen();
     await initializeAudio(tabId);
 
     const { volume, muted } = await getContexts(tabId);
     updateVolumeBadge(tabId, volume, muted);
     updateIcon(tabId, muted);
 
-    chrome.runtime.sendMessage({ type: "SET_VOLUME", tabId, volume, muted } satisfies Message);
+    const applied = await sendToOffscreen({ type: "SET_VOLUME", tabId, volume, muted } satisfies Message);
+    if (applied?.ok) return true;
+
+    await initializeAudio(tabId, true);
+    const retried = await sendToOffscreen({ type: "SET_VOLUME", tabId, volume, muted } satisfies Message);
+    return retried?.ok ?? false;
 };
 
 chrome.runtime.onInstalled.addListener(() => createOffscreen());
@@ -75,6 +89,12 @@ chrome.tabs.onRemoved.addListener((tabId: number) => {
     chrome.runtime.sendMessage({ type: "DELETE_CONTEXTS", tabId: tabIdStr } satisfies Message);
 });
 
-chrome.runtime.onMessage.addListener(async (message: Message) => {
-    if (message.type === "UPDATE_VOLUME") await updateVolume(message.tabId);
+chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse: (response: MessageResponse) => void): boolean | undefined => {
+    if (message.type !== "UPDATE_VOLUME") return undefined;
+
+    updateVolume(message.tabId).then(
+        (applied) => sendResponse({ ok: applied }),
+        () => sendResponse({ ok: false })
+    );
+    return true;
 });
